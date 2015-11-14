@@ -14,7 +14,7 @@ data TopLevelDefinition =
   DataDef String [Char] [Value]
   deriving (Show, Eq)
 
-whiteSpace = char ' ' <|> char '\n'
+whiteSpace = many (char ' ' <|> char '\n' <|> char '\r' <|> char '\t')
 
 constructorName :: Parser String
 constructorName = do
@@ -30,9 +30,10 @@ constructor = do
 application :: Parser Value
 application = do
   char '('
+  optional whiteSpace
   op <- expression
   whiteSpace
-  values <- expression `sepBy` whiteSpace
+  values <- expression `sepEndBy` whiteSpace
   char ')'
   return $ App op values
 
@@ -41,7 +42,8 @@ expression = application <|> list <|> constructor <|> name
 
 list = do
   char '['
-  contents <- expression `sepBy` whiteSpace
+  optional whiteSpace
+  contents <- expression `sepEndBy` whiteSpace
   char ']'
   return $ BList contents
 

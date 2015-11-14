@@ -1,5 +1,7 @@
 module Main where
 
+import Debug.Trace
+
 import Butters.Parser
 import Control.Monad
 import Data.Either
@@ -56,6 +58,30 @@ prop_multiple_constructors_can_be_parsed =
         ,DataDef name2 [] [BList []]
       ]
 
+random_whitespace :: Gen String
+random_whitespace = do
+  n <- arbitrary
+  ws <- shuffle $ concat $ replicate n "\t\n\r "
+  return $ take (1 + mod (abs n) 10) ws
+
+prop_spaces_are_acceptable_between_list_items :: Property
+prop_spaces_are_acceptable_between_list_items =
+  forAll random_whitespace $ \ws ->
+    parseExpression (concat ["[", ws, "[]" ++ ws ++ "[]", ws, "]"]) == Right (BList [BList [], BList []])
+
+prop_spaces_are_acceptable_between_application_items :: Property
+prop_spaces_are_acceptable_between_application_items =
+  forAll random_whitespace $ \ws ->
+    parseExpression (concat ["(", ws, "Foobar " ++ ws ++ "a", ws, ")"]) == Right (App (Constructor "Foobar") [Name "a"])
+
+prop_space_ar_acceptable_between_data_decl_items :: Property
+prop_space_ar_acceptable_between_data_decl_items =
+  forAll random_whitespace $ \ws ->
+    concat ["data ", ws, "List ", ws, "a ", ws, "| ", ws, "[] ", ws, "| ", ws, "[a (List a)]", ws] `parsesTo` DataDef "List" ['a'] [
+      BList []
+      ,BList [Name "a", (App (Constructor "List") [Name "a"])]
+    ]
+
 examples = [
     (
       "data Zero | []"
@@ -91,10 +117,6 @@ examples = [
     )
   ]
 
-test_spaces_are_acceptable_between_list_items :: Bool
-test_spaces_are_acceptable_between_list_items =
-  parseExpression "[[] []]" == Right (BList [BList [], BList []])
-
 main :: IO ()
 main = do
   putStrLn "\n--[TEST] Butters.Parser--\n"
@@ -107,3 +129,6 @@ main = do
   quickCheck prop_data_constructor_names_can_have_arbitrary_length
   quickCheck prop_constructors_can_contain_other_constructors
   quickCheck prop_multiple_constructors_can_be_parsed
+  quickCheck prop_spaces_are_acceptable_between_list_items
+  quickCheck prop_space_ar_acceptable_between_data_decl_items 
+  quickCheck prop_spaces_are_acceptable_between_application_items 
