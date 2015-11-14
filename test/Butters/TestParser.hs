@@ -43,6 +43,11 @@ prop_data_constructor_names_can_have_arbitrary_length =
   forAll constructor_name $ \name ->
     single_constructor_text name "[]" `parsesTo` DataDef name [] [BList []]
 
+prop_constructors_can_be_one_character :: Property
+prop_constructors_can_be_one_character =
+  forAll (elements ['A'..'Z']) $ \name ->
+    single_constructor_text [name] "[]" `parsesTo` DataDef [name] [] [BList []]
+
 prop_constructors_can_contain_other_constructors :: Property
 prop_constructors_can_contain_other_constructors =
   forAll constructor_name $ \name ->

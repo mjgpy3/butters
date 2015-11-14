@@ -14,6 +14,8 @@ data TopLevelDefinition =
   DataDef String [Char] [Value]
   deriving (Show, Eq)
 
+whiteSpace = char ' '
+
 constructorName :: Parser String
 constructorName = do
   c <- oneOf ['A'..'Z']
@@ -29,8 +31,8 @@ application :: Parser Value
 application = do
   char '('
   op <- expression
-  char ' '
-  values <- expression `sepBy` char ' '
+  whiteSpace
+  values <- expression `sepBy` whiteSpace
   char ')'
   return $ App op values
 
@@ -39,14 +41,14 @@ expression = application <|> list <|> constructor <|> name
 
 list = do
   char '['
-  contents <- expression `sepBy` char ' '
+  contents <- expression `sepBy` whiteSpace
   char ']'
   return $ BList contents
 
 typeVar :: Parser Char
 typeVar = do
   c <- oneOf ['a'..'z']
-  char ' '
+  whiteSpace
   return c
 
 name :: Parser Value
@@ -57,17 +59,19 @@ name = do
 
 dataDef :: Parser (String, [Char])
 dataDef = do
-  string "data "
+  string "data"
+  whiteSpace
   name <- constructorName
-  char ' '
-  typeVars <- typeVar `sepBy` char ' '
-  string "| "
+  whiteSpace
+  typeVars <- typeVar `sepBy` whiteSpace
+  string "|"
+  whiteSpace
   return (name, typeVars)
 
 topLevel :: Parser TopLevelDefinition
 topLevel = do
   (consName, typeVars) <- dataDef
-  constructors <- expression `sepBy` string " | "
+  constructors <- expression `sepBy` (whiteSpace >> char '|' >> whiteSpace)
   return $ DataDef consName typeVars constructors
 
 parseTopLevel = parse topLevel ""
