@@ -27,7 +27,7 @@ expression = list <|> constructor
 
 list = do
   char '['
-  contents <- many expression
+  contents <- sepBy expression (char ' ')
   char ']'
   return $ BList contents
 
@@ -48,3 +48,4 @@ topLevel = do
   return $ DataDef name [] constructors
 
 parseTopLevel = parse topLevel ""
+parseExpression = parse expression ""

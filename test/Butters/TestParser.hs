@@ -40,7 +40,7 @@ constructor_name = do
 
 prop_data_constructor_names_can_have_arbitrary_length :: Property
 prop_data_constructor_names_can_have_arbitrary_length =
-  forAll constructor_name $ \name -> 
+  forAll constructor_name $ \name ->
     single_constructor_text name "[]" `parsesTo` DataDef name [] [BList []]
 
 prop_constructors_can_contain_other_constructors :: Property
@@ -50,21 +50,34 @@ prop_constructors_can_contain_other_constructors =
 
 examples = [
     (
-      "data Zero | []",
-      DataDef "Zero" [] [BList []],
-      "Zero Constructor"
+      "data Zero | []"
+      ,DataDef "Zero" [] [BList []]
+      ,"Zero Constructor"
     )
     ,(
-      "data Bool | [] | [[]]",
-      DataDef "Bool" [] [BList [], BList [BList []]],
-      "Bool Constructor"
+      "data Bool | [] | [[]]"
+      ,DataDef "Bool" [] [BList [], BList [BList []]]
+      ,"Bool Constructor"
     )
     ,(
-      "data Nat | [] | [Nat]",
-      DataDef "Nat" [] [BList [], BList [Constructor "Nat"]],
-      "Nat Constructor"
+      "data Nat | [] | [Nat]"
+      ,DataDef "Nat" [] [BList [], BList [Constructor "Nat"]]
+      ,"Nat Constructor"
+    )
+    ,(
+      "data Int | [] | [[] [Nat]] | [[[]] [Nat]]"
+      ,DataDef "Int" [] [
+        BList []
+        ,BList [BList [], BList [Constructor "Nat"]]
+        ,BList [BList[BList []], BList [Constructor "Nat"]]
+      ]
+      ,"Int Constructor"
     )
   ]
+
+test_spaces_are_acceptable_between_list_items :: Bool
+test_spaces_are_acceptable_between_list_items =
+  parseExpression "[[] []]" == Right (BList [BList [], BList []])
 
 main :: IO ()
 main = do
