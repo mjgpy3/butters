@@ -13,7 +13,7 @@ data TopLevelDefinition =
 constructorName :: Parser String
 constructorName = do
   c <- oneOf ['A'..'Z']
-  rest <- many (oneOf $ ['a'..'z'] ++ ['A'..'Z'])
+  rest <- many (letter <|> digit)
   return $ c:rest
 
 expression :: Parser Constructor
@@ -23,15 +23,20 @@ expression = do
   char ']'
   return $ BList contents
 
+constructorCase :: Parser Constructor
+constructorCase = do
+  char ' '
+  char '|'
+  char ' '
+  cons <- expression
+  return $ cons
+
 topLevel :: Parser TopLevelDefinition
 topLevel = do
   string "data"
   char ' '
   name <- constructorName
-  char ' '
-  char '|'
-  char ' '
-  cons <- expression
-  return $ DataDef name [] [cons]
+  constructors <- many constructorCase
+  return $ DataDef name [] constructors
 
 parseTopLevel = parse topLevel ""
