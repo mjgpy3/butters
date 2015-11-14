@@ -1,5 +1,6 @@
 module Main where
 
+import Debug.Trace
 import Butters.Parser
 import Control.Monad
 import Data.Either
@@ -25,20 +26,44 @@ prop_arbitrary_depth_single_constructor_parser n =
     nestedNTimes = foldr (\_ o -> "[" ++ o ++ "]") "" [1..n]
     expectedBListNesting = [foldr (\_ o -> BList [o]) (BList []) [2..n]]
 
-prop_data_constructors_can_begin_with_capital_letter :: Char -> Property 
-prop_data_constructors_can_begin_with_capital_letter l =
-  l `elem` ['A'..'Z']
-    ==> single_constructor_text (l:"oobar") "[]" `parsesTo` DataDef (l:"oobar") [] [BList []]
+prop_data_constructors_can_begin_with_capital_letter :: Property 
+prop_data_constructors_can_begin_with_capital_letter =
+  forAll (elements ['A'..'Z']) $ \f ->
+    single_constructor_text (f:"oobar") "[]" `parsesTo` DataDef (f:"oobar") [] [BList []]
 
-prop_data_constructor_names_can_have_arbitrary_length :: Int -> Bool
-prop_data_constructor_names_can_have_arbitrary_length n =
-  single_constructor_text constructorName "[]" `parsesTo` DataDef constructorName [] [BList []]
-  where
-    constructorName ='A':(replicate (abs n) 'z')
+constructor_name :: Gen String
+constructor_name = do
+  f <- elements ['A'..'Z']
+  rest <- sublistOf $ ['A'..'Z'] ++ ['a'..'z']
+  shuffled <- shuffle rest
+  return $ f:shuffled
+
+prop_data_constructor_names_can_have_arbitrary_length :: Property
+prop_data_constructor_names_can_have_arbitrary_length =
+  forAll constructor_name $ \name -> 
+    single_constructor_text name "[]" `parsesTo` DataDef name [] [BList []]
+
+prop_constructors_can_contain_other_constructors :: Property
+prop_constructors_can_contain_other_constructors =
+  forAll constructor_name $ \name ->
+    single_constructor_text "SomeConst" ("[" ++ name ++ "]") `parsesTo` DataDef "SomeConst" [] [BList [Constructor name]]
 
 examples = [
-  (TopLevel "data Zero | []", DataDef "Zero" [] [BList []], "Zero Constructor")
-  ,(TopLevel "data Bool | [] | [[]]", DataDef "Bool" [] [BList [], BList [BList []]], "Bool Constructor")
+    (
+      "data Zero | []",
+      DataDef "Zero" [] [BList []],
+      "Zero Constructor"
+    )
+    ,(
+      "data Bool | [] | [[]]",
+      DataDef "Bool" [] [BList [], BList [BList []]],
+      "Bool Constructor"
+    )
+    ,(
+      "data Nat | [] | [Nat]",
+      DataDef "Nat" [] [BList [], BList [Constructor "Nat"]],
+      "Nat Constructor"
+    )
   ]
 
 main :: IO ()
@@ -46,13 +71,9 @@ main = do
   putStrLn "\n--[TEST] Butters.Parser--\n"
   forM_ examples $
     \(toParse, expected, description) ->
-      quickCheck $ counterexample (description ++ " failed to parse") $ toParse `parsesTo` expected
+      quickCheck $ counterexample (description ++ " failed to parse") $ TopLevel toParse `parsesTo` expected
 
   quickCheck prop_arbitrary_depth_single_constructor_parser 
-
   quickCheck prop_data_constructors_can_begin_with_capital_letter 
-
---  forM_ ['A'..'Z'] $
---    quickCheck . test_data_constructors_can_begin_with_capital_letter 
-
   quickCheck prop_data_constructor_names_can_have_arbitrary_length
+  quickCheck prop_constructors_can_contain_other_constructors 

@@ -2,12 +2,13 @@ module Butters.Parser where
 
 import Text.ParserCombinators.Parsec
 
-data Constructor =
-  BList [Constructor]
+data Value =
+  BList [Value]
+  | Constructor String
   deriving (Show, Eq)
 
 data TopLevelDefinition =
-  DataDef String [String] [Constructor]
+  DataDef String [String] [Value]
   deriving (Show, Eq)
 
 constructorName :: Parser String
@@ -16,14 +17,21 @@ constructorName = do
   rest <- many (letter <|> digit)
   return $ c:rest
 
-expression :: Parser Constructor
-expression = do
+constructor :: Parser Value
+constructor = do
+  n <- constructorName
+  return $ Constructor n
+
+expression :: Parser Value
+expression = list <|> constructor
+
+list = do
   char '['
   contents <- many expression
   char ']'
   return $ BList contents
 
-constructorCase :: Parser Constructor
+constructorCase :: Parser Value
 constructorCase = do
   char ' '
   char '|'
