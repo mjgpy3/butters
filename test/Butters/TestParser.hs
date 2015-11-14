@@ -73,6 +73,14 @@ examples = [
       ]
       ,"Int Constructor"
     )
+    ,(
+      "data List a | [] | [a (List a)]"
+      ,DataDef "List" ['a'] [
+        BList []
+        ,BList [Name "a", (App (Constructor "List") [Name "a"])]
+      ]
+      ,"List Constructor"
+    )
   ]
 
 test_spaces_are_acceptable_between_list_items :: Bool
@@ -84,7 +92,7 @@ main = do
   putStrLn "\n--[TEST] Butters.Parser--\n"
   forM_ examples $
     \(toParse, expected, description) ->
-      quickCheck $ counterexample (description ++ " failed to parse") $ TopLevel toParse `parsesTo` expected
+      quickCheck $ counterexample (description ++ " failed to parse\n" ++ (show $ parseTopLevel toParse)) $ TopLevel toParse `parsesTo` expected
 
   quickCheck prop_arbitrary_depth_single_constructor_parser 
   quickCheck prop_data_constructors_can_begin_with_capital_letter 
