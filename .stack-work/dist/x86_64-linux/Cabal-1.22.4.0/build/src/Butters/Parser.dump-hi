@@ -1,0 +1,52 @@
+
+==================== FINAL INTERFACE ====================
+2015-11-14 05:03:27.535231 UTC
+
+interface butte_BsvUj3aWzgA1bKCFsnr7Vo:Butters.Parser 7102
+  interface hash: d71f4104330d2035b277695323ee23e1
+  ABI hash: fd31688fd7b877cae8264159a93ce331
+  export-list hash: 1fbb938487f45486f5b540a756f1268e
+  orphan hash: 693e9af84d3dfcc71e640e005bdc5e2e
+  flag hash: 53af7e71b5f72e8792f026056f7d643a
+  sig of: Nothing
+  used TH splices: False
+  where
+exports:
+  Butters.Parser.main
+module dependencies:
+package dependencies: base-4.8.1.0* ghc-prim-0.4.0.0
+                      integer-gmp-1.0.0.0
+orphans: base-4.8.1.0:GHC.Base base-4.8.1.0:GHC.Float
+family instance modules: base-4.8.1.0:Control.Applicative
+                         base-4.8.1.0:Data.Either base-4.8.1.0:Data.Monoid
+                         base-4.8.1.0:Data.Type.Equality base-4.8.1.0:GHC.Generics
+import  -/  base-4.8.1.0:Prelude 518f762991bc287d78f21a73c974da1f
+import  -/  base-4.8.1.0:System.IO d541b8bdf18c04de3ab7ea0277c4eba3
+import  -/  ghc-prim-0.4.0.0:GHC.Types 6b27fb3fdbd0e3f0925a4496c66513bb
+ec818e71b8cafa713099181d215518eb
+  main :: GHC.Types.IO ()
+  {- Arity: 1, Strictness: <L,U>,
+     Unfolding: InlineRule (0, True, True)
+                Butters.Parser.main1 `cast` (Sym (GHC.Types.NTCo:IO[0] <()>_R)) -}
+a2601b39162d9c999a725c262f7e76ee
+  main1 ::
+    GHC.Prim.State# GHC.Prim.RealWorld
+    -> (# GHC.Prim.State# GHC.Prim.RealWorld, () #)
+  {- Arity: 1, Strictness: <L,U>,
+     Unfolding: (\ eta :: GHC.Prim.State# GHC.Prim.RealWorld[OneShot] ->
+                 GHC.IO.Handle.Text.hPutStr2
+                   GHC.IO.Handle.FD.stdout
+                   Butters.Parser.main2
+                   GHC.Types.True
+                   eta) -}
+c6c1deb80804690b5a781fcf7065d193
+  main2 :: [GHC.Types.Char]
+  {- Unfolding: (GHC.CString.unpackCString# "foobar"#) -}
+vectorised variables:
+vectorised tycons:
+vectorised reused tycons:
+parallel variables:
+parallel tycons:
+trusted: safe
+require own pkg trusted: False
+
