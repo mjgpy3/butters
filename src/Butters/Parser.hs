@@ -14,7 +14,7 @@ data TopLevelDefinition =
   DataDef String [Char] [Value]
   deriving (Show, Eq)
 
-whiteSpace = char ' '
+whiteSpace = char ' ' <|> char '\n'
 
 constructorName :: Parser String
 constructorName = do
@@ -71,8 +71,10 @@ dataDef = do
 topLevel :: Parser TopLevelDefinition
 topLevel = do
   (consName, typeVars) <- dataDef
-  constructors <- expression `sepBy` (whiteSpace >> char '|' >> whiteSpace)
+  constructors <- expression `sepBy` (try $ whiteSpace >> char '|' >> whiteSpace)
   return $ DataDef consName typeVars constructors
+
+parseAll = parse (topLevel `sepBy` whiteSpace) ""
 
 parseTopLevel = parse topLevel ""
 parseExpression = parse expression ""

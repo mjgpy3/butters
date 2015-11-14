@@ -1,23 +1,17 @@
 module Main where
 
-import Debug.Trace
 import Butters.Parser
 import Control.Monad
 import Data.Either
 import Test.QuickCheck
 
-data Parsable =
-  TopLevel String
+parsesTo text = (==) (parseTopLevel text) . Right
+parsesToMany text = (==) (parseAll text) . Right
 
-parsableText :: Parsable -> String
-parsableText (TopLevel t) = t
+failsToParse = isLeft . parseTopLevel
 
-parsesTo (TopLevel text) = (==) (parseTopLevel text) . Right
-
-failsToParse = isLeft . parseTopLevel . parsableText
-
-single_constructor_text :: String -> String -> Parsable
-single_constructor_text name cons = TopLevel $ "data " ++ name ++ " | " ++ cons
+single_constructor_text :: String -> String -> String
+single_constructor_text name cons = "data " ++ name ++ " | " ++ cons
 
 prop_arbitrary_depth_single_constructor_parser :: Int -> Property
 prop_arbitrary_depth_single_constructor_parser n =
@@ -52,6 +46,15 @@ prop_constructors_can_contain_other_constructors :: Property
 prop_constructors_can_contain_other_constructors =
   forAll constructor_name $ \name ->
     single_constructor_text "SomeConst" ("[" ++ name ++ "]") `parsesTo` DataDef "SomeConst" [] [BList [Constructor name]]
+
+prop_multiple_constructors_can_be_parsed :: Property
+prop_multiple_constructors_can_be_parsed =
+  forAll constructor_name $ \name1 ->
+    forAll constructor_name $ \name2 ->
+      (single_constructor_text name1 "[]\n" ++ single_constructor_text name2 "[]") `parsesToMany` [
+        DataDef name1 [] [BList []]
+        ,DataDef name2 [] [BList []]
+      ]
 
 examples = [
     (
@@ -97,9 +100,10 @@ main = do
   putStrLn "\n--[TEST] Butters.Parser--\n"
   forM_ examples $
     \(toParse, expected, description) ->
-      quickCheck $ counterexample (description ++ " failed to parse\n" ++ (show $ parseTopLevel toParse)) $ TopLevel toParse `parsesTo` expected
+      quickCheck $ counterexample (description ++ " failed to parse\n" ++ (show $ parseTopLevel toParse)) $ toParse `parsesTo` expected
 
-  quickCheck prop_arbitrary_depth_single_constructor_parser 
-  quickCheck prop_data_constructors_can_begin_with_capital_letter 
+  quickCheck prop_arbitrary_depth_single_constructor_parser
+  quickCheck prop_data_constructors_can_begin_with_capital_letter
   quickCheck prop_data_constructor_names_can_have_arbitrary_length
-  quickCheck prop_constructors_can_contain_other_constructors 
+  quickCheck prop_constructors_can_contain_other_constructors
+  quickCheck prop_multiple_constructors_can_be_parsed
