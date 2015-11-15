@@ -13,6 +13,7 @@ data Value =
 data TopLevelDefinition =
   DataDef String [Char] [Value]
   | SubsumptionDef String String [(Value, Value)]
+  | ValueDef Value Value Value
   deriving (Show, Eq)
 
 whiteSpace = many (char ' ' <|> char '\n' <|> char '\r' <|> char '\t') <?> "whitespace"
@@ -77,8 +78,21 @@ subsumptionDeclaration = do
   subSet <- constructorName
   return $ SubsumptionDef superSet subSet []
 
+valueDefinition :: Parser TopLevelDefinition
+valueDefinition = do
+  valueName <- name
+  whiteSpace
+  char ':'
+  whiteSpace
+  ty <- expression
+  whiteSpace
+  char '='
+  whiteSpace
+  value <- expression
+  return $ ValueDef valueName ty value
+
 topLevel :: Parser TopLevelDefinition
-topLevel = dataDeclaration <|> subsumptionDeclaration
+topLevel = dataDeclaration <|> subsumptionDeclaration <|> valueDefinition
 
 parseAll = parse (topLevel `sepBy` whiteSpace) ""
 

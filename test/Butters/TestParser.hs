@@ -74,7 +74,12 @@ prop_spaces_are_acceptable_between_application_items =
 
 test_multiple_statements_parse_successfully :: Bool
 test_multiple_statements_parse_successfully =
-  isRight $ parseAll "data Nat | [] | [Nat]\n\ndata OddNat | [[]] | [[OddNat]]\n\nNat subsumes OddNat"
+  length v == 4
+  where
+    (Right v) = parseAll $ concat ["data Nat | [] | [Nat]\n\n",
+                                   "data OddNat | [[]] | [[OddNat]]\n\n",
+                                   "empty : (List Int) = []\n\n",
+                                   "Nat subsumes OddNat"]
 
 prop_spaces_are_acceptable_between_data_decl_items :: Property
 prop_spaces_are_acceptable_between_data_decl_items =
@@ -121,6 +126,11 @@ examples = [
       "Nat subsumes EvenNat"
       ,SubsumptionDef "Nat" "EvenNat" []
       ,"The set of naturals subsumes even naturals"
+    )
+    ,(
+      "empty : (List Int) = []"
+      ,ValueDef (Name "empty") (App (Constructor "List") [Constructor "Int"]) (BList [])
+      ,"Empty list function"
     )
   ]
 
