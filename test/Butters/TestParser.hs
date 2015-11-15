@@ -1,7 +1,5 @@
 module Main where
 
-import Debug.Trace
-
 import Butters.Parser
 import Control.Monad
 import Data.Either
@@ -74,8 +72,8 @@ prop_spaces_are_acceptable_between_application_items =
   forAll random_whitespace $ \ws ->
     parseExpression (concat ["(", ws, "Foobar " ++ ws ++ "a", ws, ")"]) == Right (App (Constructor "Foobar") [Name "a"])
 
-prop_space_ar_acceptable_between_data_decl_items :: Property
-prop_space_ar_acceptable_between_data_decl_items =
+prop_spaces_are_acceptable_between_data_decl_items:: Property
+prop_spaces_are_acceptable_between_data_decl_items=
   forAll random_whitespace $ \ws ->
     concat ["data ", ws, "List ", ws, "a ", ws, "| ", ws, "[] ", ws, "| ", ws, "[a (List a)]", ws] `parsesTo` DataDef "List" ['a'] [
       BList []
@@ -115,6 +113,11 @@ examples = [
       ]
       ,"List Constructor"
     )
+    ,(
+      "Nat subsumes EvenNat"
+      ,SubsumptionDef "Nat" "EvenNat" []
+      ,"The set of naturals subsumes even naturals"
+    )
   ]
 
 main :: IO ()
@@ -130,5 +133,5 @@ main = do
   quickCheck prop_constructors_can_contain_other_constructors
   quickCheck prop_multiple_constructors_can_be_parsed
   quickCheck prop_spaces_are_acceptable_between_list_items
-  quickCheck prop_space_ar_acceptable_between_data_decl_items 
+  quickCheck prop_spaces_are_acceptable_between_data_decl_items 
   quickCheck prop_spaces_are_acceptable_between_application_items 

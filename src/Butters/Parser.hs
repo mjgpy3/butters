@@ -12,6 +12,7 @@ data Value =
 
 data TopLevelDefinition =
   DataDef String [Char] [Value]
+  | SubsumptionDef String String [(Value, Value)]
   deriving (Show, Eq)
 
 whiteSpace = many (char ' ' <|> char '\n' <|> char '\r' <|> char '\t')
@@ -23,9 +24,7 @@ constructorName = do
   return $ c:rest
 
 constructor :: Parser Value
-constructor = do
-  n <- constructorName
-  return $ Constructor n
+constructor = Constructor <$> constructorName
 
 application :: Parser Value
 application = do
@@ -40,18 +39,11 @@ application = do
 expression :: Parser Value
 expression = application <|> list <|> constructor <|> name
 
-list = do
-  char '['
-  optional whiteSpace
-  contents <- expression `sepEndBy` whiteSpace
-  char ']'
-  return $ BList contents
-
-typeVar :: Parser Char
-typeVar = do
-  c <- oneOf ['a'..'z']
-  whiteSpace
-  return c
+list = BList
+  <$> between
+    (char '[' >> optional whiteSpace)
+    (char ']')
+    (expression `sepEndBy` whiteSpace)
 
 name :: Parser Value
 name = do
@@ -65,16 +57,28 @@ dataDef = do
   whiteSpace
   name <- constructorName
   whiteSpace
-  typeVars <- typeVar `sepBy` whiteSpace
+  typeVars <- oneOf ['a'..'z'] `sepEndBy` whiteSpace
   string "|"
   whiteSpace
   return (name, typeVars)
 
-topLevel :: Parser TopLevelDefinition
-topLevel = do
+dataDeclaration :: Parser TopLevelDefinition
+dataDeclaration = do
   (consName, typeVars) <- dataDef
   constructors <- expression `sepBy` (try $ whiteSpace >> char '|' >> whiteSpace)
   return $ DataDef consName typeVars constructors
+
+subsumptionDeclaration :: Parser TopLevelDefinition
+subsumptionDeclaration = do
+  superSet <- constructorName
+  whiteSpace
+  string "subsumes"
+  whiteSpace
+  subSet <- constructorName
+  return $ SubsumptionDef superSet subSet []
+
+topLevel :: Parser TopLevelDefinition
+topLevel = dataDeclaration <|> subsumptionDeclaration
 
 parseAll = parse (topLevel `sepBy` whiteSpace) ""
 
