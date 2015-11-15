@@ -1,5 +1,6 @@
 module TestParser (testParser) where
 
+import Butters.Ast
 import Butters.Parser
 import Control.Monad
 import Data.Either
