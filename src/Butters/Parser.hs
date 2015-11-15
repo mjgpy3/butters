@@ -15,7 +15,7 @@ data TopLevelDefinition =
   | SubsumptionDef String String [(Value, Value)]
   deriving (Show, Eq)
 
-whiteSpace = many (char ' ' <|> char '\n' <|> char '\r' <|> char '\t')
+whiteSpace = many (char ' ' <|> char '\n' <|> char '\r' <|> char '\t') <?> "whitespace"
 
 constructorName :: Parser String
 constructorName = do
