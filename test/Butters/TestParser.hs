@@ -1,4 +1,4 @@
-module Main where
+module TestParser (testParser) where
 
 import Butters.Parser
 import Control.Monad
@@ -120,8 +120,8 @@ examples = [
     )
   ]
 
-main :: IO ()
-main = do
+testParser :: IO ()
+testParser = do
   putStrLn "\n--[TEST] Butters.Parser--\n"
   forM_ examples $
     \(toParse, expected, description) ->
