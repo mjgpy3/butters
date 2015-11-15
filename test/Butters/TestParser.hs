@@ -20,7 +20,7 @@ prop_arbitrary_depth_single_constructor_parser n =
     nestedNTimes = foldr (\_ o -> "[" ++ o ++ "]") "" [1..n]
     expectedBListNesting = [foldr (\_ o -> BList [o]) (BList []) [2..n]]
 
-prop_data_constructors_can_begin_with_capital_letter :: Property 
+prop_data_constructors_can_begin_with_capital_letter :: Property
 prop_data_constructors_can_begin_with_capital_letter =
   forAll (elements ['A'..'Z']) $ \f ->
     single_constructor_text (f:"oobar") "[]" `parsesTo` DataDef (f:"oobar") [] [BList []]
@@ -72,8 +72,12 @@ prop_spaces_are_acceptable_between_application_items =
   forAll random_whitespace $ \ws ->
     parseExpression (concat ["(", ws, "Foobar " ++ ws ++ "a", ws, ")"]) == Right (App (Constructor "Foobar") [Name "a"])
 
-prop_spaces_are_acceptable_between_data_decl_items:: Property
-prop_spaces_are_acceptable_between_data_decl_items=
+test_multiple_statements_parse_successfully :: Bool
+test_multiple_statements_parse_successfully =
+  isRight $ parseAll "data Nat | [] | [Nat]\n\ndata OddNat | [[]] | [[OddNat]]\n\nNat subsumes OddNat"
+
+prop_spaces_are_acceptable_between_data_decl_items :: Property
+prop_spaces_are_acceptable_between_data_decl_items =
   forAll random_whitespace $ \ws ->
     concat ["data ", ws, "List ", ws, "a ", ws, "| ", ws, "[] ", ws, "| ", ws, "[a (List a)]", ws] `parsesTo` DataDef "List" ['a'] [
       BList []
@@ -133,5 +137,7 @@ testParser = do
   quickCheck prop_constructors_can_contain_other_constructors
   quickCheck prop_multiple_constructors_can_be_parsed
   quickCheck prop_spaces_are_acceptable_between_list_items
-  quickCheck prop_spaces_are_acceptable_between_data_decl_items 
-  quickCheck prop_spaces_are_acceptable_between_application_items 
+  quickCheck prop_spaces_are_acceptable_between_data_decl_items
+  quickCheck prop_spaces_are_acceptable_between_application_items
+
+  quickCheck test_multiple_statements_parse_successfully
