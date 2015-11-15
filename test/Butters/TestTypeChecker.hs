@@ -5,12 +5,15 @@ import Butters.TypeChecker
 import Data.Either
 import Test.QuickCheck
 
-test_redundant_constructors_dont_type_check :: Bool
-test_redundant_constructors_dont_type_check =
-  isLeft $ checkRedundantConstructors $ DataDef "BadNat" [] [BList [], BList []]
+test_simple_redundant_constructors_dont_type_check :: Bool
+test_simple_redundant_constructors_dont_type_check =
+  consName == "BadNat" && a == (BList [], 0) && b == (BList [], 2)
+  where
+  (Left [RedundantConstructors consName a b]) = typeCheck dataWithRedundant
+  dataWithRedundant = DataDef "BadNat" [] [BList [], BList [Name "a"], BList []]
 
 testTypeChecker :: IO ()
 testTypeChecker = do
   putStrLn "\n--[TEST] Butters.TypeChecker--\n"
 
-  quickCheck test_redundant_constructors_dont_type_check
+  quickCheck test_simple_redundant_constructors_dont_type_check

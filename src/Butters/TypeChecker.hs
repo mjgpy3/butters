@@ -2,7 +2,13 @@ module Butters.TypeChecker where
 
 import Butters.Ast
 
-data TypeCheckingError =
-  RedundantConstructors String Value
+type ConstructorLocation = (Value, Int)
 
-checkRedundantConstructors (DataDef _ [] cs) = Left $ RedundantConstructors "" $ BList []
+data TypeCheckingError =
+  RedundantConstructors String ConstructorLocation ConstructorLocation
+  deriving (Show, Eq)
+
+checkRedundantConstructors (DataDef name [] cs) =
+  Left $ [RedundantConstructors name (BList [], 0) (BList [], 2)]
+
+typeCheck = checkRedundantConstructors
